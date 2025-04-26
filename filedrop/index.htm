@@ -3,16 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <title>filedrop.bearhive</title>
-  <style>body{font-family:sans-serif;padding:2em;}button{margin-left:1em;}</style>
+  <style>
+    /* Reset default margins and ensure full height */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    /* Make body a flex container */
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Ensure body takes at least full viewport height */
+      padding: 2em;
+      box-sizing: border-box;
+    }
+
+    /* Main content takes all available space */
+    main {
+      flex: 1 0 auto; /* Grow to fill space, don't shrink */
+    }
+
+    /* Style for buttons */
+    button {
+      margin-left: 1em;
+    }
+
+    /* Footer styles */
+    .footer {
+      flex-shrink: 0; /* Prevent footer from shrinking */
+      width: 100%;
+      background-color: #eee;
+      padding: 1em 2em;
+      box-sizing: border-box;
+    }
+  </style>
 </head>
 <body>
-  <h1>filedrop.bearhive</h1>
-  <p>File-sharing endpoint with one-time use encryption keys that the server never retains. 200MB limit.</p>
-  <form id="uploadForm">
-    <input type="file" name="file" required>
-    <button>Upload</button>
-  </form>
-  <p id="link"></p>
+  <main>
+    <h1>filedrop.bearhive</h1>
+    <p>File-sharing endpoint with one-time use encryption keys that the server never retains. 200MB limit.</p>
+    <form id="uploadForm">
+      <input type="file" name="file" required>
+      <button>Upload</button>
+    </form>
+    <p id="link"></p>
+  </main>
+  <footer class="footer">
+    <p>Powered by <a href="https://github.com/rogerlew/filedrop">github.com/rogerlew/filedrop</a></p>
+  </footer>
   <script>
     document.getElementById('uploadForm').addEventListener('submit', async e => {
       document.getElementById('link').innerHTML = "...";
@@ -20,7 +61,7 @@
       const f = e.target.file.files[0];
       const fd = new FormData();
       fd.append('file', f);
-      const res = await fetch('upload/', { method:'POST', body:fd });
+      const res = await fetch('upload.php', { method: 'POST', body: fd });
       const j = await res.json();
       if (j.url) {
         const cmd = j.download_cmd;

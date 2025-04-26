@@ -38,5 +38,8 @@ header(
 );
 header('Content-Length: ' . filesize($file));
 readfile($file);
+
+// Delete the file so it can only be downloaded once
+@unlink($file);
 exit;
 
