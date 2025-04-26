@@ -1,0 +1,50 @@
+server {
+    listen 8080;
+    listen [::]:8080;
+    server_name  filedrop.bearhive.duckdns.org;
+
+    client_max_body_size 200M;
+
+    root   /var/www/filedrop;
+    index  index.php index.html index.htm;
+
+    # NO directory listing
+    autoindex  off;
+
+    # 1) Static files and directories
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # 2) PHP execution
+    location ~ \.php$ {
+        # Split “foo.php/bar” into script and path_info
+        fastcgi_split_path_info  ^(.+?\.php)(/.*)$;
+
+        # Pass to PHP-FPM
+        fastcgi_pass             unix:/run/php/php8.3-fpm.sock;
+
+        # Tell PHP where the file lives
+        fastcgi_param            SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+
+        include                  snippets/fastcgi-php.conf;
+    }
+
+    # 1) Match exactly /fetch/<36-char UUID> and rewrite
+    location ~ "^/fetch/[0-9A-Fa-f\-]{36}$" {
+        rewrite ^/fetch/([0-9A-Fa-f-]+)$ /fetch/index.php?uuid=$1 last;
+    }
+
+    # 2) Hand that rewritten request to PHP-FPM
+    location = /fetch/index.php {
+        fastcgi_split_path_info  ^(.+\.php)(/.*)$;
+        fastcgi_pass            unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param           SCRIPT_FILENAME  /var/www/filedrop/fetch/index.php;
+        fastcgi_param           QUERY_STRING     $query_string;
+        include                 snippets/fastcgi-php.conf;
+    }
+
+    location ^~ /.files/ {
+        internal;    # or: deny all;
+    }
+}
